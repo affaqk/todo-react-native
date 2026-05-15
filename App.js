@@ -1,32 +1,71 @@
 import { useState, useCallback, useEffect } from 'react';
+import { Text, View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { Text } from 'react-native';
 import * as ExpoSplashScreen from 'expo-splash-screen';
 
-import TodoScreen from './screens/TodoScreen';
-import AboutScreen from './screens/AboutScreen';
-import TermsScreen from './screens/TermsScreen';
+import { CartProvider, useCart } from './context/CartContext';
 import SplashScreen from './screens/SplashScreen';
+import HomeScreen from './screens/HomeScreen';
+import RestaurantScreen from './screens/RestaurantScreen';
+import CartScreen from './screens/CartScreen';
+import ProfileScreen from './screens/ProfileScreen';
 
-// Keep the native splash visible until we're ready
 ExpoSplashScreen.preventAutoHideAsync();
 
 const Tab = createBottomTabNavigator();
+const HomeStack = createNativeStackNavigator();
 
-const icons = {
-  Todos: '☑',
-  About: 'ℹ',
-  Terms: '📄',
-};
+function HomeStackNavigator() {
+  return (
+    <HomeStack.Navigator screenOptions={{ headerShown: false }}>
+      <HomeStack.Screen name="Home" component={HomeScreen} />
+      <HomeStack.Screen name="Restaurant" component={RestaurantScreen} />
+    </HomeStack.Navigator>
+  );
+}
+
+function TabNavigator() {
+  const { totalItems } = useCart();
+
+  return (
+    <Tab.Navigator
+      screenOptions={({ route }) => ({
+        headerShown: false,
+        tabBarIcon: ({ focused }) => {
+          const map = { Order: '🏠', Cart: '🛒', Profile: '👤' };
+          return <Text style={{ fontSize: 22, opacity: focused ? 1 : 0.5 }}>{map[route.name]}</Text>;
+        },
+        tabBarActiveTintColor: '#FF385C',
+        tabBarInactiveTintColor: '#bbb',
+        tabBarStyle: {
+          backgroundColor: '#fff',
+          borderTopColor: '#f0f0f0',
+          height: 64,
+          paddingBottom: 10,
+          paddingTop: 6,
+        },
+        tabBarLabelStyle: { fontSize: 11, fontWeight: '700' },
+      })}
+    >
+      <Tab.Screen name="Order" component={HomeStackNavigator} />
+      <Tab.Screen
+        name="Cart"
+        component={CartScreen}
+        options={{ tabBarBadge: totalItems > 0 ? totalItems : undefined }}
+      />
+      <Tab.Screen name="Profile" component={ProfileScreen} />
+    </Tab.Navigator>
+  );
+}
 
 export default function App() {
   const [appReady, setAppReady] = useState(false);
   const [splashDone, setSplashDone] = useState(false);
 
   useEffect(() => {
-    // Simulate asset loading / initialization work
     const prepare = async () => {
       await new Promise(resolve => setTimeout(resolve, 300));
       setAppReady(true);
@@ -35,9 +74,7 @@ export default function App() {
   }, []);
 
   const onLayoutRootView = useCallback(async () => {
-    if (appReady) {
-      await ExpoSplashScreen.hideAsync();
-    }
+    if (appReady) await ExpoSplashScreen.hideAsync();
   }, [appReady]);
 
   if (!appReady) return null;
@@ -52,33 +89,11 @@ export default function App() {
 
   return (
     <SafeAreaProvider>
-      <NavigationContainer>
-        <Tab.Navigator
-          screenOptions={({ route }) => ({
-            headerShown: false,
-            tabBarIcon: () => (
-              <Text style={{ fontSize: 20 }}>{icons[route.name]}</Text>
-            ),
-            tabBarActiveTintColor: '#4f46e5',
-            tabBarInactiveTintColor: '#aaa',
-            tabBarStyle: {
-              backgroundColor: '#fff',
-              borderTopColor: '#eee',
-              height: 60,
-              paddingBottom: 8,
-              paddingTop: 6,
-            },
-            tabBarLabelStyle: {
-              fontSize: 12,
-              fontWeight: '600',
-            },
-          })}
-        >
-          <Tab.Screen name="Todos" component={TodoScreen} />
-          <Tab.Screen name="About" component={AboutScreen} />
-          <Tab.Screen name="Terms" component={TermsScreen} />
-        </Tab.Navigator>
-      </NavigationContainer>
+      <CartProvider>
+        <NavigationContainer>
+          <TabNavigator />
+        </NavigationContainer>
+      </CartProvider>
     </SafeAreaProvider>
   );
 }

@@ -4,152 +4,121 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 const { width, height } = Dimensions.get('window');
 
-const DOT_COUNT = 18;
-const dots = Array.from({ length: DOT_COUNT }, (_, i) => ({
+const BUBBLES = Array.from({ length: 14 }, (_, i) => ({
   id: i,
   top: Math.random() * height,
   left: Math.random() * width,
-  size: Math.random() * 8 + 4,
-  delay: Math.random() * 1200,
-  duration: Math.random() * 2000 + 2000,
+  size: Math.random() * 10 + 6,
+  delay: Math.random() * 1500,
+  duration: Math.random() * 2000 + 2500,
 }));
 
-function FloatingDot({ top, left, size, delay, duration }) {
+const FOOD_ICONS = ['🍔', '🍕', '🍣', '🥤', '🍜', '🌮', '🍩', '🥗'];
+
+function Bubble({ top, left, size, delay, duration }) {
   const opacity = useRef(new Animated.Value(0)).current;
   const translateY = useRef(new Animated.Value(0)).current;
-
   useEffect(() => {
     Animated.loop(
       Animated.sequence([
         Animated.delay(delay),
         Animated.parallel([
           Animated.sequence([
-            Animated.timing(opacity, { toValue: 0.5, duration: duration / 2, useNativeDriver: true }),
-            Animated.timing(opacity, { toValue: 0.1, duration: duration / 2, useNativeDriver: true }),
+            Animated.timing(opacity, { toValue: 0.45, duration: duration / 2, useNativeDriver: true }),
+            Animated.timing(opacity, { toValue: 0.05, duration: duration / 2, useNativeDriver: true }),
           ]),
           Animated.sequence([
-            Animated.timing(translateY, { toValue: -16, duration: duration / 2, useNativeDriver: true }),
+            Animated.timing(translateY, { toValue: -20, duration: duration / 2, useNativeDriver: true }),
             Animated.timing(translateY, { toValue: 0, duration: duration / 2, useNativeDriver: true }),
           ]),
         ]),
       ])
     ).start();
   }, []);
-
   return (
     <Animated.View
-      style={[
-        styles.dot,
-        { top, left, width: size, height: size, borderRadius: size / 2, opacity, transform: [{ translateY }] },
-      ]}
+      style={[styles.bubble, { top, left, width: size, height: size, borderRadius: size / 2, opacity, transform: [{ translateY }] }]}
     />
   );
 }
 
 export default function SplashScreen({ onFinish }) {
-  const bgOpacity   = useRef(new Animated.Value(0)).current;
-  const logoScale   = useRef(new Animated.Value(0.3)).current;
-  const logoOpacity = useRef(new Animated.Value(0)).current;
-  const ringScale   = useRef(new Animated.Value(0.3)).current;
-  const ringOpacity = useRef(new Animated.Value(0)).current;
-  const textOpacity = useRef(new Animated.Value(0)).current;
-  const textSlide   = useRef(new Animated.Value(24)).current;
-  const tagOpacity  = useRef(new Animated.Value(0)).current;
-  const exitOpacity = useRef(new Animated.Value(1)).current;
+  const bg      = useRef(new Animated.Value(0)).current;
+  const logo    = useRef(new Animated.Value(0)).current;
+  const logoSc  = useRef(new Animated.Value(0.2)).current;
+  const ring    = useRef(new Animated.Value(0)).current;
+  const ringSc  = useRef(new Animated.Value(0.2)).current;
+  const title   = useRef(new Animated.Value(0)).current;
+  const titleY  = useRef(new Animated.Value(30)).current;
+  const sub     = useRef(new Animated.Value(0)).current;
+  const icons   = useRef(new Animated.Value(0)).current;
+  const exit    = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
     Animated.sequence([
-      // background fade in
-      Animated.timing(bgOpacity, { toValue: 1, duration: 400, useNativeDriver: true }),
-
-      // ring pulse behind logo
+      Animated.timing(bg, { toValue: 1, duration: 350, useNativeDriver: true }),
       Animated.parallel([
-        Animated.spring(logoScale,   { toValue: 1, tension: 60, friction: 7, useNativeDriver: true }),
-        Animated.timing(logoOpacity, { toValue: 1, duration: 500, useNativeDriver: true }),
-        Animated.spring(ringScale,   { toValue: 1.4, tension: 40, friction: 6, useNativeDriver: true }),
-        Animated.timing(ringOpacity, { toValue: 0.25, duration: 600, useNativeDriver: true }),
+        Animated.spring(logoSc, { toValue: 1, tension: 55, friction: 7, useNativeDriver: true }),
+        Animated.timing(logo,   { toValue: 1, duration: 500, useNativeDriver: true }),
+        Animated.spring(ringSc, { toValue: 1.5, tension: 38, friction: 6, useNativeDriver: true }),
+        Animated.timing(ring,   { toValue: 0.3, duration: 600, useNativeDriver: true }),
       ]),
-
-      // app name slides up
       Animated.parallel([
-        Animated.timing(textOpacity, { toValue: 1, duration: 450, useNativeDriver: true }),
-        Animated.timing(textSlide,   { toValue: 0,  duration: 450, useNativeDriver: true }),
+        Animated.timing(title,  { toValue: 1, duration: 420, useNativeDriver: true }),
+        Animated.timing(titleY, { toValue: 0, duration: 420, useNativeDriver: true }),
       ]),
-
-      // tagline fades in
-      Animated.timing(tagOpacity, { toValue: 1, duration: 400, useNativeDriver: true }),
-
-      // pause then exit
+      Animated.timing(sub,   { toValue: 1, duration: 360, useNativeDriver: true }),
+      Animated.timing(icons, { toValue: 1, duration: 400, useNativeDriver: true }),
       Animated.delay(900),
-      Animated.timing(exitOpacity, { toValue: 0, duration: 500, useNativeDriver: true }),
+      Animated.timing(exit, { toValue: 0, duration: 480, useNativeDriver: true }),
     ]).start(() => onFinish());
   }, []);
 
   return (
-    <Animated.View style={[StyleSheet.absoluteFill, { opacity: exitOpacity }]}>
-      <Animated.View style={[StyleSheet.absoluteFill, { opacity: bgOpacity }]}>
+    <Animated.View style={[StyleSheet.absoluteFill, { opacity: exit }]}>
+      <Animated.View style={[StyleSheet.absoluteFill, { opacity: bg }]}>
         <LinearGradient
-          colors={['#312e81', '#4f46e5', '#7c3aed']}
+          colors={['#FF385C', '#FF6B35', '#FFAD00']}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={StyleSheet.absoluteFill}
         />
 
-        {/* Floating background dots */}
-        {dots.map(d => (
-          <FloatingDot key={d.id} {...d} />
-        ))}
+        {BUBBLES.map(b => <Bubble key={b.id} {...b} />)}
 
-        {/* Bottom wave decoration */}
-        <View style={styles.waveBottom} />
-        <View style={styles.waveTop} />
+        {/* top blob */}
+        <View style={styles.blobTop} />
+        <View style={styles.blobBottom} />
 
-        {/* Center content */}
         <View style={styles.center}>
+          {/* glow ring */}
+          <Animated.View style={[styles.ring, { opacity: ring, transform: [{ scale: ringSc }] }]} />
 
-          {/* Glow ring */}
-          <Animated.View
-            style={[styles.ring, { transform: [{ scale: ringScale }], opacity: ringOpacity }]}
-          />
-
-          {/* Logo circle */}
-          <Animated.View
-            style={[styles.logoWrap, { transform: [{ scale: logoScale }], opacity: logoOpacity }]}
-          >
-            <LinearGradient
-              colors={['#ffffff22', '#ffffff44']}
-              style={styles.logoGradient}
-            >
-              <Text style={styles.logoIcon}>✓</Text>
+          {/* logo */}
+          <Animated.View style={[styles.logoWrap, { opacity: logo, transform: [{ scale: logoSc }] }]}>
+            <LinearGradient colors={['#ffffff30', '#ffffff55']} style={styles.logoGrad}>
+              <Text style={styles.logoIcon}>🍽️</Text>
             </LinearGradient>
           </Animated.View>
 
-          {/* App name */}
-          <Animated.Text
-            style={[
-              styles.appName,
-              { opacity: textOpacity, transform: [{ translateY: textSlide }] },
-            ]}
-          >
-            MyTodos
+          <Animated.Text style={[styles.appName, { opacity: title, transform: [{ translateY: titleY }] }]}>
+            FoodDash
           </Animated.Text>
 
-          {/* Tagline */}
-          <Animated.Text style={[styles.tagline, { opacity: tagOpacity }]}>
-            Stay organized. Stay ahead.
+          <Animated.Text style={[styles.tagline, { opacity: sub }]}>
+            Cravings delivered fast 🚀
           </Animated.Text>
 
-          {/* Divider dots */}
-          <Animated.View style={[styles.dividerRow, { opacity: tagOpacity }]}>
-            {[0, 1, 2].map(i => (
-              <View key={i} style={[styles.dividerDot, i === 1 && styles.dividerDotLarge]} />
+          {/* food icon strip */}
+          <Animated.View style={[styles.iconStrip, { opacity: icons }]}>
+            {FOOD_ICONS.map((ic, i) => (
+              <Text key={i} style={styles.foodIcon}>{ic}</Text>
             ))}
           </Animated.View>
         </View>
 
-        {/* Footer */}
-        <Animated.Text style={[styles.footer, { opacity: tagOpacity }]}>
-          Made with ♥
+        <Animated.Text style={[styles.footer, { opacity: sub }]}>
+          Made with ❤️ for food lovers
         </Animated.Text>
       </Animated.View>
     </Animated.View>
@@ -157,104 +126,53 @@ export default function SplashScreen({ onFinish }) {
 }
 
 const styles = StyleSheet.create({
-  center: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  bubble: { position: 'absolute', backgroundColor: '#fff' },
+  blobTop: {
+    position: 'absolute', top: -100, right: -80,
+    width: width * 0.8, height: 280, borderRadius: 140,
+    backgroundColor: '#ffffff15', transform: [{ rotate: '20deg' }],
   },
-  dot: {
-    position: 'absolute',
-    backgroundColor: '#fff',
-  },
-  waveBottom: {
-    position: 'absolute',
-    bottom: -60,
-    left: -40,
-    width: width + 80,
-    height: 180,
-    borderRadius: 100,
-    backgroundColor: '#ffffff12',
-    transform: [{ rotate: '-5deg' }],
-  },
-  waveTop: {
-    position: 'absolute',
-    top: -80,
-    right: -60,
-    width: width * 0.85,
-    height: 220,
-    borderRadius: 120,
-    backgroundColor: '#ffffff0a',
-    transform: [{ rotate: '15deg' }],
+  blobBottom: {
+    position: 'absolute', bottom: -80, left: -60,
+    width: width * 0.85, height: 220, borderRadius: 110,
+    backgroundColor: '#ffffff10', transform: [{ rotate: '-8deg' }],
   },
   ring: {
     position: 'absolute',
-    width: 160,
-    height: 160,
-    borderRadius: 80,
-    borderWidth: 2,
-    borderColor: '#fff',
-    backgroundColor: '#ffffff15',
+    width: 180, height: 180, borderRadius: 90,
+    borderWidth: 2, borderColor: '#fff',
+    backgroundColor: '#ffffff18',
   },
   logoWrap: {
-    width: 110,
-    height: 110,
-    borderRadius: 32,
-    overflow: 'hidden',
-    marginBottom: 28,
+    width: 120, height: 120, borderRadius: 36,
+    overflow: 'hidden', marginBottom: 26,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.4,
-    shadowRadius: 20,
-    elevation: 16,
+    shadowOffset: { width: 0, height: 14 },
+    shadowOpacity: 0.35, shadowRadius: 22,
+    elevation: 18,
   },
-  logoGradient: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1.5,
-    borderColor: '#ffffff55',
-    borderRadius: 32,
+  logoGrad: {
+    flex: 1, alignItems: 'center', justifyContent: 'center',
+    borderWidth: 1.5, borderColor: '#ffffff50', borderRadius: 36,
   },
-  logoIcon: {
-    fontSize: 58,
-    color: '#fff',
-  },
+  logoIcon: { fontSize: 62 },
   appName: {
-    fontSize: 42,
-    fontWeight: '800',
-    color: '#fff',
-    letterSpacing: 1,
-    marginBottom: 10,
+    fontSize: 46, fontWeight: '800', color: '#fff',
+    letterSpacing: 1.5, marginBottom: 8,
   },
   tagline: {
-    fontSize: 16,
-    color: '#c4b5fd',
-    letterSpacing: 0.5,
-    marginBottom: 24,
+    fontSize: 16, color: '#ffe0b2', letterSpacing: 0.4, marginBottom: 28,
   },
-  dividerRow: {
-    flexDirection: 'row',
-    gap: 6,
-    alignItems: 'center',
+  iconStrip: {
+    flexDirection: 'row', gap: 10,
+    backgroundColor: '#ffffff20',
+    paddingHorizontal: 18, paddingVertical: 10,
+    borderRadius: 30,
   },
-  dividerDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: '#ffffff55',
-  },
-  dividerDotLarge: {
-    width: 22,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: '#fff',
-  },
+  foodIcon: { fontSize: 22 },
   footer: {
-    position: 'absolute',
-    bottom: 44,
-    alignSelf: 'center',
-    fontSize: 13,
-    color: '#a5b4fc',
-    letterSpacing: 0.5,
+    position: 'absolute', bottom: 46, alignSelf: 'center',
+    fontSize: 13, color: '#ffe0c0', letterSpacing: 0.4,
   },
 });
