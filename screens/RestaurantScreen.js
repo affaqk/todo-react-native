@@ -1,11 +1,28 @@
-import { StyleSheet, Text, View, TouchableOpacity, SectionList } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, SectionList, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useCart } from '../context/CartContext';
+import { useAuth } from '../context/AuthContext';
 
 export default function RestaurantScreen({ route, navigation }) {
   const { restaurant } = route.params;
   const { addItem, removeItem, getQty, totalItems, subtotal, fromRestaurant } = useCart();
+  const { user } = useAuth();
+
+  const handleAdd = (item) => {
+    if (!user) {
+      Alert.alert(
+        '🔒 Login Required',
+        'Please sign in to add items to your cart.',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Sign In', onPress: () => navigation.navigate('Login') },
+        ]
+      );
+      return;
+    }
+    addItem(item, restaurant);
+  };
 
   const cartIsFromHere = fromRestaurant?.id === restaurant.id;
 
@@ -86,7 +103,7 @@ export default function RestaurantScreen({ route, navigation }) {
               {qty === 0 ? (
                 <TouchableOpacity
                   style={[styles.addBtn, !restaurant.isOpen && styles.addBtnDisabled]}
-                  onPress={() => restaurant.isOpen && addItem(item, restaurant)}
+                  onPress={() => restaurant.isOpen && handleAdd(item)}
                   disabled={!restaurant.isOpen}
                 >
                   <Text style={styles.addBtnText}>+ Add</Text>
@@ -97,7 +114,7 @@ export default function RestaurantScreen({ route, navigation }) {
                     <Text style={styles.qtyBtnText}>−</Text>
                   </TouchableOpacity>
                   <Text style={styles.qtyNum}>{qty}</Text>
-                  <TouchableOpacity style={styles.qtyBtn} onPress={() => addItem(item, restaurant)}>
+                  <TouchableOpacity style={styles.qtyBtn} onPress={() => handleAdd(item)}>
                     <Text style={styles.qtyBtnText}>+</Text>
                   </TouchableOpacity>
                 </View>

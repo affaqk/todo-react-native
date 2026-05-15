@@ -3,9 +3,21 @@ import { StyleSheet, Text, View, FlatList, TouchableOpacity, Alert, Modal } from
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useCart } from '../context/CartContext';
+import { useAuth } from '../context/AuthContext';
+import LoginRequired from '../components/LoginRequired';
 
-export default function CartScreen() {
+export default function CartScreen({ navigation }) {
+  const { user } = useAuth();
   const { items, fromRestaurant, addItem, removeItem, clearCart, subtotal } = useCart();
+
+  if (!user) {
+    return (
+      <SafeAreaView style={{ flex: 1 }} edges={['top']}>
+        <Text style={styles.header}>Your Cart</Text>
+        <LoginRequired navigation={navigation} message="Sign in to view your cart and place orders." />
+      </SafeAreaView>
+    );
+  }
   const [orderPlaced, setOrderPlaced] = useState(false);
 
   const deliveryFee = fromRestaurant?.deliveryFee ?? 0;

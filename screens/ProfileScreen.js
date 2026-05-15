@@ -1,6 +1,9 @@
-import { StyleSheet, Text, View, ScrollView, TouchableOpacity } from 'react-native';
+import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useAuth } from '../context/AuthContext';
+import { useCart } from '../context/CartContext';
+import LoginRequired from '../components/LoginRequired';
 
 const menuItems = [
   { icon: '📦', label: 'My Orders', sub: 'Track and reorder meals' },
@@ -14,7 +17,32 @@ const menuItems = [
   { icon: '💬', label: 'Help & Support', sub: 'FAQs and chat support' },
 ];
 
-export default function ProfileScreen() {
+export default function ProfileScreen({ navigation }) {
+  const { user, logout } = useAuth();
+  const { clearCart } = useCart();
+
+  if (!user) {
+    return (
+      <SafeAreaView style={{ flex: 1 }} edges={['top']}>
+        <Text style={styles.header}>Profile</Text>
+        <LoginRequired navigation={navigation} message="Sign in to view your profile, orders and more." />
+      </SafeAreaView>
+    );
+  }
+
+  const initials = user.name
+    ? user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
+    : '?';
+
+  const handleLogout = () => {
+    Alert.alert('Log Out', 'Are you sure you want to log out?', [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Log Out', style: 'destructive', onPress: async () => { await logout(); clearCart(); } },
+    ]);
+  };
+
+  const roleBadge = user.role === 'admin' ? '👑 Admin' : '🌟 Member';
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
@@ -23,13 +51,13 @@ export default function ProfileScreen() {
         {/* Avatar card */}
         <LinearGradient colors={['#FF385C', '#FF6B35']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.profileCard}>
           <View style={styles.avatarWrap}>
-            <Text style={styles.avatarText}>JD</Text>
+            <Text style={styles.avatarText}>{initials}</Text>
           </View>
           <View style={styles.profileInfo}>
-            <Text style={styles.profileName}>John Doe</Text>
-            <Text style={styles.profileEmail}>johndoe@email.com</Text>
+            <Text style={styles.profileName}>{user.name}</Text>
+            <Text style={styles.profileEmail}>{user.email}</Text>
             <View style={styles.memberBadge}>
-              <Text style={styles.memberBadgeText}>🌟 Gold Member</Text>
+              <Text style={styles.memberBadgeText}>{roleBadge}</Text>
             </View>
           </View>
           <TouchableOpacity style={styles.editProfileBtn}>
@@ -64,7 +92,7 @@ export default function ProfileScreen() {
           ))}
         </View>
 
-        <TouchableOpacity style={styles.logoutBtn}>
+        <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
           <Text style={styles.logoutText}>Log Out</Text>
         </TouchableOpacity>
 
